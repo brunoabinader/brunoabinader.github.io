@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bruno Abinader - Guides</title><link href="https://brunoabinader.com/" rel="alternate"></link><link href="https://brunoabinader.com/feeds/guides.atom.xml" rel="self"></link><id>https://brunoabinader.com/</id><updated>2012-04-11T23:41:00+03:00</updated><entry><title>How CMake simplifies the build process (Part 1: Basic build system)</title><link href="https://brunoabinader.com/how-cmake-simplifies-the-build-process-part-1-basic-build-system.html" rel="alternate"></link><published>2012-04-11T23:41:00+03:00</published><updated>2012-04-11T23:41:00+03:00</updated><author><name>Bruno de Oliveira Abinader</name></author><id>tag:brunoabinader.com,2012-04-11:/how-cmake-simplifies-the-build-process-part-1-basic-build-system.html</id><summary type="html">&lt;p&gt;From my previous blogs there were some posts that got popular due to
+their useful content, and one that got my special attention&amp;nbsp;is the
+tutorials on how to set up a basic (and further a bit more complex)
+build system based on &lt;a class="reference external" href="http://www.cmake.org/"&gt;CMake&lt;/a&gt;. These posts were left to dark …&lt;/p&gt;</summary><content type="html">&lt;p&gt;From my previous blogs there were some posts that got popular due to
+their useful content, and one that got my special attention&amp;nbsp;is the
+tutorials on how to set up a basic (and further a bit more complex)
+build system based on &lt;a class="reference external" href="http://www.cmake.org/"&gt;CMake&lt;/a&gt;. These posts were left to dark when my
+contract with Dreamhost expired last year and I was lame enough to not
+save a backup. Lucky enough, I found them while browsing
+web.archives.org, which is actually a very good tool whenever you need
+to obtain information from previous versions of your website.&lt;/p&gt;
+&lt;p&gt;Wikipedia (&lt;a class="reference external" href="http://en.wikipedia.org/wiki/CMake"&gt;link&lt;/a&gt;) defines CMake as:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;strong&gt;*CMake&lt;/strong&gt;&amp;nbsp;is a cross-platform, open-source system for managing the
+build process of software&amp;nbsp;using a compiler-independent method. It is
+designed to support directory hierarchies and applications that
+depend on multiple libraries, and for use in conjunction with native
+build environments such as&amp;nbsp;Make, Apple's&amp;nbsp;Xcode&amp;nbsp;and&amp;nbsp;Microsoft Visual
+Studio. It also has minimal dependencies, requiring only
+a&amp;nbsp;C++-compiler on its own build system.*&lt;/blockquote&gt;
+&lt;p&gt;From my experience with build systems, CMake is one of the most flexible
+and easy to use ones, specially when you deal with a cross compilation
+environment (actually its name stands for &lt;strong&gt;*C&lt;/strong&gt;ross Platform
+&lt;strong&gt;Make*&lt;/strong&gt;). So let's get started with the guide on how to set up a
+simple build system for a small project containing a few separate source
+files.&lt;/p&gt;
+&lt;p&gt;CMake consists of a series of macros and functions which finds the
+required components for you in a simple and precise way - meaning no
+unnecessary dependencies :)&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;strong&gt;NOTE:&lt;/strong&gt; I like the concept of shadow build directories to separate
+source from binary data, it gives your project a clean environment
+and also avoids unnecessary source modifications (specially when
+your source code management relies on stat to monitore source
+changes), among other advantages. For this, there is a very useful
+CMake macro called
+&lt;em&gt;MacroOutOfSourceBuild.cmake&lt;/em&gt;&amp;nbsp;(&lt;a class="reference external" href="http://192.241.254.193/backup/git/cgi-bin/gitweb.cgi?p=cmake-tutorial.git;a=blob_plain;f=cmake/modules/MacroOutOfSourceBuild.cmake"&gt;link&lt;/a&gt;),
+which requires the user to build the source code outside its base
+directory, ensuring the developer to use a shadow build directory.&lt;/blockquote&gt;
+&lt;p&gt;So let us start our example project. Suppose you have a small project
+&amp;quot;Hello World&amp;quot;
+(&lt;a class="reference external" href="http://192.241.254.193/backup/git/cgi-bin/gitweb.cgi?p=cmake-tutorial.git;a=snapshot;h=HEAD;sf=tgz"&gt;link&lt;/a&gt;)
+which consists of a set of files arranged like this:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+boab&amp;#64;oceanlab:~$ find helloworld/
+helloworld/
+helloworld/src
+helloworld/src/main.cpp
+helloworld/src/helloworld.cpp
+helloworld/src/CMakeLists.txt
+helloworld/src/helloworld.h
+helloworld/cmake
+helloworld/cmake/modules
+helloworld/cmake/modules/MacroOutOfSourceBuild.cmake
+helloworld/CMakeLists.txt
+&lt;/pre&gt;
+&lt;p&gt;As you can see above, the source files &lt;em&gt;helloworld.h&lt;/em&gt;, &lt;em&gt;helloworld.cpp&lt;/em&gt;
+and &lt;em&gt;main.cpp&lt;/em&gt; are located inside &lt;em&gt;src/&lt;/em&gt; directory, which is located on
+the project's base directory. CMake states that each project directory
+(including child directories) which contains source code should have a
+file named &lt;em&gt;CMakeLists.txt&lt;/em&gt;. This file contains the build steps for the
+source files contained on that directory. The &amp;quot;Hello World&amp;quot; project does
+have two directories (base directory and &lt;em&gt;src/&lt;/em&gt; directory), then two
+&lt;em&gt;CMakeLists.txt&lt;/em&gt; files are created as follows:&lt;/p&gt;
+&lt;div class="section" id="helloworld-cmakelists-txt-base-directory"&gt;
+&lt;h2&gt;helloworld/CMakeLists.txt (base directory)&lt;/h2&gt;
+&lt;pre class="literal-block"&gt;
+# Project name is not mandatory, but you should use it
+project(helloworld)
+
+# States that CMake required version must be greater than 2.6
+cmake_minimum_required(VERSION 2.6)
+
+# Appends the cmake/modules path inside the MAKE_MODULE_PATH variable which stores the
+# directories of additional CMake modules (ie. MacroOutOfSourceBuild.cmake):
+set(CMAKE_MODULE_PATH ${helloworld_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
+
+# The macro below forces the build directory to be different from source directory:
+include(MacroOutOfSourceBuild)
+
+macro_ensure_out_of_source_build(&amp;quot;${PROJECT_NAME} requires an out of source build.&amp;quot;)
+
+add_subdirectory(src)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class="section" id="helloworld-src-cmakelists-txt"&gt;
+&lt;h2&gt;helloworld/src/CMakeLists.txt&lt;/h2&gt;
+&lt;pre class="literal-block"&gt;
+# Include the directory itself as a path to include directories
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+# Create a variable called helloworld_SOURCES containing all .cpp files:
+set(helloworld_SOURCES helloworld.cpp main.cpp)
+
+# For a large number of source files you can create it in a simpler way
+# using file() function:
+# file(GLOB hellworld_SOURCES *.cpp)
+
+# Create an executable file called helloworld from sources:
+add_executable(helloworld ${helloworld_SOURCES})
+&lt;/pre&gt;
+&lt;p&gt;Now you create a shadow build directory (ie. &lt;em&gt;build/&lt;/em&gt;) and start
+building your project, as shown with the commands below:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+$ mkdir build
+$ cd build
+$ cmake ..
+-- The C compiler identification is GNU
+-- The CXX compiler identification is GNU
+-- Check for working C compiler: /usr/bin/gcc
+-- Check for working C compiler: /usr/bin/gcc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/boab/helloworld/build
+$ make
+[ 50%] Building CXX object src/CMakeFiles/helloworld.dir/helloworld.cpp.o
+[100%] Building CXX object src/CMakeFiles/helloworld.dir/main.cpp.o
+Linking CXX executable helloworld
+[100%] Built target helloworld
+&lt;/pre&gt;
+&lt;p&gt;&lt;em&gt;Voilà&lt;/em&gt;! Now you have finished setting up a simple project build system.
+The second part of this tutorial (Advanced build system) is cooking and
+will be served soon :)&lt;/p&gt;
+&lt;/div&gt;
+</content><category term="cmake"></category></entry><entry><title>A guide for Qt5/WebKit2 development setup for Nokia N9 on Ubuntu Linux</title><link href="https://brunoabinader.com/a-guide-for-qt5webkit2-development-setup-for-nokia-n9-on-ubuntu-linux.html" rel="alternate"></link><published>2012-04-11T03:18:00+03:00</published><updated>2012-04-11T03:18:00+03:00</updated><author><name>Bruno de Oliveira Abinader</name></author><id>tag:brunoabinader.com,2012-04-11:/a-guide-for-qt5webkit2-development-setup-for-nokia-n9-on-ubuntu-linux.html</id><summary type="html">&lt;p&gt;As part of my daily activities at &lt;a class="reference external" href="http://www.basyskom.com/"&gt;basysKom&lt;/a&gt; on QtWebKit maintenance
+and development for Nokia&amp;nbsp;devices, it is interesting to keep a track on
+latest developments circa QtWebKit. There is currently a promising
+project of&amp;nbsp;a Qt5/WebKit2-based browser called &lt;a class="reference external" href="http://snowshoe.qtlabs.org.br/"&gt;Snowshoe&lt;/a&gt; mainly
+developed by my fellow friends from&amp;nbsp;&lt;a class="reference external" href="http://www.indt.org/?lang=en"&gt;INdT&lt;/a&gt;&amp;nbsp;which …&lt;/p&gt;</summary><content type="html">&lt;p&gt;As part of my daily activities at &lt;a class="reference external" href="http://www.basyskom.com/"&gt;basysKom&lt;/a&gt; on QtWebKit maintenance
+and development for Nokia&amp;nbsp;devices, it is interesting to keep a track on
+latest developments circa QtWebKit. There is currently a promising
+project of&amp;nbsp;a Qt5/WebKit2-based browser called &lt;a class="reference external" href="http://snowshoe.qtlabs.org.br/"&gt;Snowshoe&lt;/a&gt; mainly
+developed by my fellow friends from&amp;nbsp;&lt;a class="reference external" href="http://www.indt.org/?lang=en"&gt;INdT&lt;/a&gt;&amp;nbsp;which is completely
+open-source.&amp;nbsp;This browser requires latest Qt5 and QtWebKit binaries and
+thus requires us to have a functional build system environment. There is
+a guide available on WebKit's wiki (&lt;a class="reference external" href="http://trac.webkit.org/wiki/SettingUpDevelopmentEnvironmentForN9"&gt;link&lt;/a&gt;) which is very helpful but
+lacks some information about compilation issues found when following the
+setup steps. So I am basing this guide from that wiki page and I hope
+that it gets updated soon :)&lt;/p&gt;
+&lt;p&gt;On this guide it is assumed the following:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;All commands are issued on a Linux console. I am not aware of how
+this guide would work on other systems.&lt;/li&gt;
+&lt;li&gt;All commands are supposed to be issued inside base directory, unless
+expressely said otherwise (ie. cd &lt;em&gt;&amp;lt;QT5_DIR&amp;gt;&lt;/em&gt;).&lt;/li&gt;
+&lt;li&gt;You might want to check if you have &lt;em&gt;git&lt;/em&gt;&amp;nbsp;and &lt;em&gt;rsync&lt;/em&gt;&amp;nbsp;packages
+installed in your syste&lt;em&gt;m.&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="section" id="install-qt-sdk"&gt;
+&lt;h2&gt;1. Install Qt SDK&lt;/h2&gt;
+&lt;p&gt;In order to build Qt5 and QtWebKit for Nokia N9, you need to set up a
+cross-compiler. Thankfully, Qt SDK already comes with a working setup.
+Please download the &lt;em&gt;online installer&lt;/em&gt;&amp;nbsp;from Qt Downloads section
+(&lt;a class="reference external" href="http://qt.nokia.com/downloads/"&gt;link&lt;/a&gt;).&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;NOTE&lt;/strong&gt;:&amp;nbsp;The offline installer comes with an outdated version of
+the MADDE target, which can be updated by running the script below
+and chosing &amp;quot;Update components&amp;quot; when asked:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+$ ~/QtSDK/SDKMaintenanceTool
+&lt;/pre&gt;
+&lt;/blockquote&gt;
+&lt;/div&gt;
+&lt;div class="section" id="directory-setup"&gt;
+&lt;h2&gt;2. Directory setup&lt;/h2&gt;
+&lt;p&gt;It is suggested (and actually required by some build scripts) to have a
+base directory which holds Qt5, Qt Components and WebKit project
+sources. The suggested base directory can be created by running:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+$ mkdir -p ~/swork
+
+**NOTE**: You can actually choose another directory name, but so far
+it is required by some scripts to have at least a symbolic link
+pointing to *&amp;lt;HOME\_DIR&amp;gt;/swork*.
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class="section" id="download-convenience-scripts"&gt;
+&lt;h2&gt;3. Download convenience scripts&lt;/h2&gt;
+&lt;div class="section" id="browser-scripts"&gt;
+&lt;h3&gt;3.1. browser-scripts&lt;/h3&gt;
+&lt;pre class="literal-block"&gt;
+$ git clone https://github.com/resworb/scripts.git browser-scripts
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class="section" id="rsync-scripts"&gt;
+&lt;h3&gt;3.2. rsync-scripts&lt;/h3&gt;
+&lt;pre class="literal-block"&gt;
+$ wget http://trac.webkit.org/attachment/wiki/SettingUpDevelopmentEnvironmentForN9/rsync-scripts.tar.gz?format=raw
+$ tar xzf rsync-scripts.tar.gz
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="download-required-sources"&gt;
+&lt;h2&gt;4. Download required sources&lt;/h2&gt;
+&lt;div class="section" id="testfonts"&gt;
+&lt;h3&gt;4.1. testfonts&lt;/h3&gt;
+&lt;pre class="literal-block"&gt;
+$ git clone git://gitorious.org/qtwebkit/testfonts.git
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class="section" id="qt5-qtcomponents-and-webkit"&gt;
+&lt;h3&gt;4.2. Qt5, QtComponents and WebKit&lt;/h3&gt;
+&lt;p&gt;The script below when successfully run will create &lt;em&gt;~/swork/qt5&lt;/em&gt;,
+&lt;em&gt;~/swork/qtcomponents&lt;/em&gt; and &lt;em&gt;~/swork/webkit&lt;/em&gt; directories:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+$ browser-scripts/clone-sources.sh --no-ssh
+
+**NOTE:** You can also manually download sources, but remember to
+stick with the directory names described above.
+&lt;/pre&gt;
+&lt;div class="section" id="pre-build-hacks"&gt;
+&lt;h4&gt;5. Pre-build hacks&lt;/h4&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="qt5-translations"&gt;
+&lt;h3&gt;5.1. Qt5 translations&lt;/h3&gt;
+&lt;p&gt;Qt5 translations are not being properly handled by cross-platform
+toolchain. This happens mainly because &lt;em&gt;lrelease&lt;/em&gt; application is called
+to generate Qt message files, but since it is an ARMEL binary your
+system is probably not capable of running it natively (unless you have a
+&lt;em&gt;misc_runner&lt;/em&gt; kernel module properly set, then you can safely skip this
+step). In this case, you can use lrelease from your system's Qt binaries
+without any worries.&lt;/p&gt;
+&lt;p&gt;If you have a Scratchbox environment set, it is suggested for you to
+stop its service first:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+$ sudo service scratchbox-core stop
+&lt;/pre&gt;
+&lt;p&gt;Now you can manually generate Qt message files by running this:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+$ cd ~/swork/qt5/qttranslations/translations
+$ for file in `ls *ts`; do lrelease $file -qm `echo &amp;quot;$file&amp;quot; | sed 's/ts$/qm/'`; done
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class="section" id="disable-jsondb-client-tool"&gt;
+&lt;h3&gt;5.2. Disable jsondb-client tool&lt;/h3&gt;
+&lt;p&gt;&lt;em&gt;QtJsonDB&lt;/em&gt; module from Qt5 contains a tool called &lt;em&gt;jsondb-client&lt;/em&gt;, which
+depends on &lt;em&gt;libedit&lt;/em&gt; (not available on MADDE target). It is safe to
+disable its compilation for now:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+$ sed -i 's/jsondb-client//' ~/swork/qt5/qtjsondb/tools/tools.pro
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class="section" id="create-missing-symbolic-links"&gt;
+&lt;h3&gt;5.3. Create missing symbolic links&lt;/h3&gt;
+&lt;p&gt;Unfortunately Qt5 build system is not robust enough to support our
+cross-compilation environment, so some symbolic links are required on
+MADDE to avoid compilation errors (where &amp;lt;USER&amp;gt; is your system user
+name):&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+$ ln -s ~/swork/qt5/qtbase/include ~/QtSDK/Madde/sysroots/harmattan_sysroot_10.2011.34-1_slim/home/&amp;lt;USER&amp;gt;/swork/qt5/qtbase
+$ ln -s ~/swork/qt5/qtbase/mkspecs ~/QtSDK/Madde/sysroots/harmattan_sysroot_10.2011.34-1_slim/home/&amp;lt;USER&amp;gt;/swork/qt5/mkspecs
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="build-sources"&gt;
+&lt;h2&gt;6. Build sources&lt;/h2&gt;
+&lt;p&gt;You can execute the script that will build all sources using
+cross-compilation setup:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+$ browser-scripts/build-sources.sh --cross-compile
+&lt;/pre&gt;
+&lt;p&gt;If everything went well, you now have the most up-to-date binaries for
+Qt5/WebKit2 development for Nokia N9. Please have a look at &lt;a class="reference external" href="http://trac.webkit.org/wiki/SettingUpDevelopmentEnvironmentForN9"&gt;WebKit's
+wiki&lt;/a&gt; for more information about how to update sources after a previous
+build and information on how to keep files in sync with device. The
+guide assumes PR1.1 firmware for N9 device, which is already outdated,
+so I might come up next with updated instructions on how to safely sync
+files to your PR1.2-enabled device.&lt;/p&gt;
+&lt;p&gt;That's all for now, I appreciate your comments and feedback!&lt;/p&gt;
+&lt;/div&gt;
+</content><category term="basyskom"></category><category term="qt"></category><category term="webkit"></category></entry></feed>

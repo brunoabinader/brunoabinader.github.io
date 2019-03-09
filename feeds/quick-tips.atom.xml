@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bruno Abinader - Quick tips</title><link href="https://brunoabinader.com/" rel="alternate"></link><link href="https://brunoabinader.com/feeds/quick-tips.atom.xml" rel="self"></link><id>https://brunoabinader.com/</id><updated>2014-01-28T16:22:00+02:00</updated><entry><title>Converting C-Like Enums to String values in Rust</title><link href="https://brunoabinader.com/converting-c-like-enums-to-string-values-in-rust.html" rel="alternate"></link><published>2014-01-28T16:22:00+02:00</published><updated>2014-01-28T16:22:00+02:00</updated><author><name>Bruno de Oliveira Abinader</name></author><id>tag:brunoabinader.com,2014-01-28:/converting-c-like-enums-to-string-values-in-rust.html</id><summary type="html">&lt;p&gt;Suppose you have a C-Like Enum in Rust like the one below:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;enum&lt;/span&gt; &lt;span class="nc"&gt;Foo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;SomeValue&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;OtherValue&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: C-Like enumerations in Rust have no parameters (i.e.
+&lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;SomeValue(~str)&lt;/span&gt;&lt;/tt&gt;), and can have their discriminator values
+explicitly set to a constant value (i.e. &lt;tt class="docutils literal"&gt;SomeValue = 0&lt;/tt&gt;).
+See&amp;nbsp;&lt;a class="reference external" href="http://static.rust-lang.org/doc/master/tutorial.html#enums"&gt;http://static.rust-lang.org/doc …&lt;/a&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;Suppose you have a C-Like Enum in Rust like the one below:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;enum&lt;/span&gt; &lt;span class="nc"&gt;Foo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;SomeValue&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;OtherValue&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: C-Like enumerations in Rust have no parameters (i.e.
+&lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;SomeValue(~str)&lt;/span&gt;&lt;/tt&gt;), and can have their discriminator values
+explicitly set to a constant value (i.e. &lt;tt class="docutils literal"&gt;SomeValue = 0&lt;/tt&gt;).
+See&amp;nbsp;&lt;a class="reference external" href="http://static.rust-lang.org/doc/master/tutorial.html#enums"&gt;http://static.rust-lang.org/doc/master/tutorial.html#enums&lt;/a&gt;&amp;nbsp;for
+details.&lt;/p&gt;
+&lt;p&gt;If you want to obtain the string value (i.e. &amp;quot;SomeValue&amp;quot;) given an
+unsigned integer, the trick is to first cast it as a Foo value, then use
+&lt;a class="reference external" href="http://static.rust-lang.org/doc/master/std/fmt/index.html"&gt;format&lt;/a&gt;&amp;nbsp;to obtain its string representation. For the former step,
+first we need to make Foo implement the &lt;a class="reference external" href="http://static.rust-lang.org/doc/master/collections/enum_set/trait.CLike.html"&gt;CLike&lt;/a&gt; &lt;a class="reference external" href="http://static.rust-lang.org/doc/master/tutorial.html#traits"&gt;trait&lt;/a&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;extern&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;mod&lt;/span&gt; &lt;span class="nn"&gt;extra&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="k"&gt;use&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;std&lt;/span&gt;::&lt;span class="n"&gt;cast&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="k"&gt;use&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;extra&lt;/span&gt;::&lt;span class="n"&gt;enum_set&lt;/span&gt;::&lt;span class="n"&gt;CLike&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="cp"&gt;#[repr(uint)]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="k"&gt;enum&lt;/span&gt; &lt;span class="nc"&gt;Foo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;SomeValue&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;OtherValue&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="k"&gt;impl&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;CLike&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;Foo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;fn&lt;/span&gt; &lt;span class="nf"&gt;to_uint&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-&amp;gt; &lt;span class="nc"&gt;uint&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;as&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;uint&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;fn&lt;/span&gt; &lt;span class="nf"&gt;from_uint&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;: &lt;span class="nc"&gt;uint&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-&amp;gt; &lt;span class="nc"&gt;Foo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="k"&gt;unsafe&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;cast&lt;/span&gt;::&lt;span class="n"&gt;transmute&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The latter step is easy, we just need to format the output as string.
+The simple way is to make &lt;tt class="docutils literal"&gt;Foo&lt;/tt&gt; derive from ToStr:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;extern&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;mod&lt;/span&gt; &lt;span class="nn"&gt;extra&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="k"&gt;use&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;std&lt;/span&gt;::&lt;span class="n"&gt;cast&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="k"&gt;use&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;extra&lt;/span&gt;::&lt;span class="n"&gt;enum_set&lt;/span&gt;::&lt;span class="n"&gt;CLike&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="k"&gt;use&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;std&lt;/span&gt;::&lt;span class="n"&gt;to_str&lt;/span&gt;::&lt;span class="n"&gt;ToStr&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="cp"&gt;#[repr(uint)]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;#[deriving(ToStr)]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="k"&gt;enum&lt;/span&gt; &lt;span class="nc"&gt;Foo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;SomeValue&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;OtherValue&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="k"&gt;impl&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;CLike&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;Foo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;fn&lt;/span&gt; &lt;span class="nf"&gt;to_uint&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-&amp;gt; &lt;span class="nc"&gt;uint&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;as&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;uint&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;fn&lt;/span&gt; &lt;span class="nf"&gt;from_uint&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;: &lt;span class="nc"&gt;uint&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-&amp;gt; &lt;span class="nc"&gt;Foo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="k"&gt;unsafe&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;cast&lt;/span&gt;::&lt;span class="n"&gt;transmute&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="k"&gt;fn&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="kd"&gt;let&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;: &lt;span class="nc"&gt;Foo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;CLike&lt;/span&gt;::&lt;span class="n"&gt;from_uint&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;println&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;{}&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;to_str&lt;/span&gt;&lt;span class="p"&gt;());&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The output for this code is &lt;tt class="docutils literal"&gt;SomeValue&lt;/tt&gt;.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;strong&gt;Update&lt;/strong&gt;: Thanks to Manishearth &amp;#64; irc.mozilla.org for checking out
+some old links &amp;amp; typos in source code :-)&lt;/blockquote&gt;
+</content><category term="rust"></category></entry><entry><title>Vim Quicktip: Navigating to function implementation with ctags</title><link href="https://brunoabinader.com/vim-quicktip-navigating-to-function-implementation-with-ctags.html" rel="alternate"></link><published>2012-04-12T23:55:00+03:00</published><updated>2012-04-12T23:55:00+03:00</updated><author><name>Bruno de Oliveira Abinader</name></author><id>tag:brunoabinader.com,2012-04-12:/vim-quicktip-navigating-to-function-implementation-with-ctags.html</id><summary type="html">&lt;p&gt;I am a regular &lt;em&gt;Vim&lt;/em&gt; user, but I've also played around with full blown
+IDEs like &lt;em&gt;Qt Creator&lt;/em&gt; and &lt;em&gt;MS Visual Studio&lt;/em&gt;. One interesting aspect
+about IDEs is the ability to easily navigate through a function
+implementation based on its usage on a piece of code. Taking the example
+from …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I am a regular &lt;em&gt;Vim&lt;/em&gt; user, but I've also played around with full blown
+IDEs like &lt;em&gt;Qt Creator&lt;/em&gt; and &lt;em&gt;MS Visual Studio&lt;/em&gt;. One interesting aspect
+about IDEs is the ability to easily navigate through a function
+implementation based on its usage on a piece of code. Taking the example
+from my &lt;a class="reference external" href="http://192.241.254.193/backup/how-cmake-simplifies-the-build-process-part-1-basic-build-system/"&gt;CMake post&lt;/a&gt;, suppose you use the function &lt;em&gt;sayHello()&lt;/em&gt; defined
+in a included header of your current source file and its implementation
+resides in another file as well. You may want to check out its
+implementation, but you doesn't actually require to open a new view or
+loading it on the current view without an easy way to get back to the
+previous code. For this, Vim works very well with ctags. Let us check
+out how to generate ctags for your code and use it to let Vim know where
+to look up for your code.&lt;/p&gt;
+&lt;p&gt;First of all, we are assuming you already have Vim installed on your
+system, so now we must also have the &lt;em&gt;exuberant-tags&lt;/em&gt; package as well:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+$ sudo apt-get install exuberant-ctags
+&lt;/pre&gt;
+&lt;p&gt;Now that you have ctags package installed, you can start generating
+ctags among your commonly used source code projects. You can generate a
+&lt;em&gt;ctags&lt;/em&gt; file manually by issuing the following command (preferably
+inside your project's base directory):&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+$ ctags -R --sort=yes .
+&lt;/pre&gt;
+&lt;p&gt;It is wise to keep an up-to-date &lt;em&gt;ctags&lt;/em&gt; file for your most used source
+code projects, and then tell Vim to load them everytime you open a file.
+For this, you can add the following line to your &lt;em&gt;~/.vimrc&lt;/em&gt; file:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+set tags += ~/.vim/tags/cpp &amp;quot; (standard C++ library)
+&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;NOTE:&lt;/strong&gt; You can also create a macro that automagically creates a
+ctags file on the directory where your currently open file on Vim is
+located. For this, you can also add this line of code inside
+&lt;em&gt;~/.vimrc&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+map &amp;lt;C-F12&amp;gt; :!ctags -R --sort=yes .&amp;lt;CR&amp;gt;
+&lt;/pre&gt;
+&lt;p&gt;Now every time you press &lt;em&gt;Ctrl+F12&lt;/em&gt; inside Vim, the &lt;em&gt;ctags&lt;/em&gt; file is
+either created or updated if already exists.&lt;/p&gt;
+&lt;p&gt;Now you are able to navigate through your code implementation. Try
+putting your cursor on a given function call, then press &lt;em&gt;Ctrl+]&lt;/em&gt; to go
+to its implementation, and &lt;em&gt;Ctrl+t&lt;/em&gt; to get back to where it has been
+called. You can also manually navigate to a function implementation by
+requesting from Vim:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+:ta &amp;lt;function_name&amp;gt;
+&lt;/pre&gt;
+&lt;p&gt;Next topic on this subject will be about using a Vim plugin called
+&lt;a class="reference external" href="http://www.vim.org/scripts/script.php?script_id=1520"&gt;OmniCppComplete&lt;/a&gt; to enable auto complete feature for your code. Thanks
+for reading!&lt;/p&gt;
+</content><category term="ctags"></category><category term="ide"></category><category term="vim"></category></entry></feed>

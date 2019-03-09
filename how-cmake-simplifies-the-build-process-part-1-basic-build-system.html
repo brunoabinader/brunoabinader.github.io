@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en"
+>
+<head>
+    <title>How CMake simplifies the build process (Part 1: Basic build system) - Bruno Abinader</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="https://brunoabinader.com/how-cmake-simplifies-the-build-process-part-1-basic-build-system.html">
+
+        <meta name="author" content="Bruno de Oliveira Abinader" />
+        <meta name="keywords" content="cmake" />
+        <meta name="description" content="From my previous blogs there were some posts that got popular due to their useful content, and one that got my special attention is the tutorials on how to set up a basic (and further a bit more complex) build system based on CMake. These posts were left to dark …" />
+
+        <meta property="og:site_name" content="Bruno Abinader" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="How CMake simplifies the build process (Part 1: Basic build system)"/>
+        <meta property="og:url" content="https://brunoabinader.com/how-cmake-simplifies-the-build-process-part-1-basic-build-system.html"/>
+        <meta property="og:description" content="From my previous blogs there were some posts that got popular due to their useful content, and one that got my special attention is the tutorials on how to set up a basic (and further a bit more complex) build system based on CMake. These posts were left to dark …"/>
+        <meta property="article:published_time" content="2012-04-11" />
+            <meta property="article:section" content="Guides" />
+            <meta property="article:tag" content="cmake" />
+            <meta property="article:author" content="Bruno de Oliveira Abinader" />
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="https://brunoabinader.com/theme/css/bootstrap.min.css" type="text/css"/>
+    <link href="https://brunoabinader.com/theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="https://brunoabinader.com/theme/css/pygments/native.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://brunoabinader.com/theme/css/style.css" type="text/css"/>
+
+        <link href="https://brunoabinader.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Bruno Abinader ATOM Feed"/>
+        <link href="https://brunoabinader.com/feeds/all.rss.xml" type="application/rss+xml" rel="alternate"
+              title="Bruno Abinader RSS Feed"/>
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+	<div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="https://brunoabinader.com/" class="navbar-brand">
+Bruno Abinader            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="https://brunoabinader.com/category/development.html">Development</a>
+                        </li>
+                        <li class="active">
+                            <a href="https://brunoabinader.com/category/guides.html">Guides</a>
+                        </li>
+                        <li >
+                            <a href="https://brunoabinader.com/category/personal.html">Personal</a>
+                        </li>
+                        <li >
+                            <a href="https://brunoabinader.com/category/quick-tips.html">Quick tips</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="https://brunoabinader.com/archives.html"><i class="fa fa-th-list"></i><span class="icon-label">Archives</span></a></li>
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+<!-- Banner -->
+<!-- End Banner -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+            <ol class="breadcrumb">
+                <li><a href="https://brunoabinader.com" title="Bruno Abinader"><i class="fa fa-home fa-lg"></i></a></li>
+                <li><a href="https://brunoabinader.com/category/guides.html" title="Guides">Guides</a></li>
+                <li class="active">How CMake simplifies the build process (Part 1: Basic build system)</li>
+            </ol>
+
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="https://brunoabinader.com/how-cmake-simplifies-the-build-process-part-1-basic-build-system.html"
+                       rel="bookmark"
+                       title="Permalink to How CMake simplifies the build process (Part 1: Basic build system)">
+                        How CMake simplifies the build process (Part 1: Basic build system)
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2012-04-11T23:41:00+03:00"> Wed 11 April 2012</time>
+    </span>
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="https://brunoabinader.com/tag/cmake.html">cmake</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>From my previous blogs there were some posts that got popular due to
+their useful content, and one that got my special attention&nbsp;is the
+tutorials on how to set up a basic (and further a bit more complex)
+build system based on <a class="reference external" href="http://www.cmake.org/">CMake</a>. These posts were left to dark when my
+contract with Dreamhost expired last year and I was lame enough to not
+save a backup. Lucky enough, I found them while browsing
+web.archives.org, which is actually a very good tool whenever you need
+to obtain information from previous versions of your website.</p>
+<p>Wikipedia (<a class="reference external" href="http://en.wikipedia.org/wiki/CMake">link</a>) defines CMake as:</p>
+<blockquote>
+<strong>*CMake</strong>&nbsp;is a cross-platform, open-source system for managing the
+build process of software&nbsp;using a compiler-independent method. It is
+designed to support directory hierarchies and applications that
+depend on multiple libraries, and for use in conjunction with native
+build environments such as&nbsp;Make, Apple's&nbsp;Xcode&nbsp;and&nbsp;Microsoft Visual
+Studio. It also has minimal dependencies, requiring only
+a&nbsp;C++-compiler on its own build system.*</blockquote>
+<p>From my experience with build systems, CMake is one of the most flexible
+and easy to use ones, specially when you deal with a cross compilation
+environment (actually its name stands for <strong>*C</strong>ross Platform
+<strong>Make*</strong>). So let's get started with the guide on how to set up a
+simple build system for a small project containing a few separate source
+files.</p>
+<p>CMake consists of a series of macros and functions which finds the
+required components for you in a simple and precise way - meaning no
+unnecessary dependencies :)</p>
+<blockquote>
+<strong>NOTE:</strong> I like the concept of shadow build directories to separate
+source from binary data, it gives your project a clean environment
+and also avoids unnecessary source modifications (specially when
+your source code management relies on stat to monitore source
+changes), among other advantages. For this, there is a very useful
+CMake macro called
+<em>MacroOutOfSourceBuild.cmake</em>&nbsp;(<a class="reference external" href="http://192.241.254.193/backup/git/cgi-bin/gitweb.cgi?p=cmake-tutorial.git;a=blob_plain;f=cmake/modules/MacroOutOfSourceBuild.cmake">link</a>),
+which requires the user to build the source code outside its base
+directory, ensuring the developer to use a shadow build directory.</blockquote>
+<p>So let us start our example project. Suppose you have a small project
+&quot;Hello World&quot;
+(<a class="reference external" href="http://192.241.254.193/backup/git/cgi-bin/gitweb.cgi?p=cmake-tutorial.git;a=snapshot;h=HEAD;sf=tgz">link</a>)
+which consists of a set of files arranged like this:</p>
+<pre class="literal-block">
+boab&#64;oceanlab:~$ find helloworld/
+helloworld/
+helloworld/src
+helloworld/src/main.cpp
+helloworld/src/helloworld.cpp
+helloworld/src/CMakeLists.txt
+helloworld/src/helloworld.h
+helloworld/cmake
+helloworld/cmake/modules
+helloworld/cmake/modules/MacroOutOfSourceBuild.cmake
+helloworld/CMakeLists.txt
+</pre>
+<p>As you can see above, the source files <em>helloworld.h</em>, <em>helloworld.cpp</em>
+and <em>main.cpp</em> are located inside <em>src/</em> directory, which is located on
+the project's base directory. CMake states that each project directory
+(including child directories) which contains source code should have a
+file named <em>CMakeLists.txt</em>. This file contains the build steps for the
+source files contained on that directory. The &quot;Hello World&quot; project does
+have two directories (base directory and <em>src/</em> directory), then two
+<em>CMakeLists.txt</em> files are created as follows:</p>
+<div class="section" id="helloworld-cmakelists-txt-base-directory">
+<h2>helloworld/CMakeLists.txt (base directory)</h2>
+<pre class="literal-block">
+# Project name is not mandatory, but you should use it
+project(helloworld)
+
+# States that CMake required version must be greater than 2.6
+cmake_minimum_required(VERSION 2.6)
+
+# Appends the cmake/modules path inside the MAKE_MODULE_PATH variable which stores the
+# directories of additional CMake modules (ie. MacroOutOfSourceBuild.cmake):
+set(CMAKE_MODULE_PATH ${helloworld_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
+
+# The macro below forces the build directory to be different from source directory:
+include(MacroOutOfSourceBuild)
+
+macro_ensure_out_of_source_build(&quot;${PROJECT_NAME} requires an out of source build.&quot;)
+
+add_subdirectory(src)
+</pre>
+</div>
+<div class="section" id="helloworld-src-cmakelists-txt">
+<h2>helloworld/src/CMakeLists.txt</h2>
+<pre class="literal-block">
+# Include the directory itself as a path to include directories
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+# Create a variable called helloworld_SOURCES containing all .cpp files:
+set(helloworld_SOURCES helloworld.cpp main.cpp)
+
+# For a large number of source files you can create it in a simpler way
+# using file() function:
+# file(GLOB hellworld_SOURCES *.cpp)
+
+# Create an executable file called helloworld from sources:
+add_executable(helloworld ${helloworld_SOURCES})
+</pre>
+<p>Now you create a shadow build directory (ie. <em>build/</em>) and start
+building your project, as shown with the commands below:</p>
+<pre class="literal-block">
+$ mkdir build
+$ cd build
+$ cmake ..
+-- The C compiler identification is GNU
+-- The CXX compiler identification is GNU
+-- Check for working C compiler: /usr/bin/gcc
+-- Check for working C compiler: /usr/bin/gcc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/boab/helloworld/build
+$ make
+[ 50%] Building CXX object src/CMakeFiles/helloworld.dir/helloworld.cpp.o
+[100%] Building CXX object src/CMakeFiles/helloworld.dir/main.cpp.o
+Linking CXX executable helloworld
+[100%] Built target helloworld
+</pre>
+<p><em>Voilà</em>! Now you have finished setting up a simple project build system.
+The second part of this tutorial (Advanced build system) is cooking and
+will be served soon :)</p>
+</div>
+
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<div id="aboutme">
+        <p>
+            <img width="100%" class="img-thumbnail" src="https://avatars1.githubusercontent.com/u/76133?v=3&s=400"/>
+        </p>
+    <p>
+        <strong>About Bruno de Oliveira Abinader</strong><br/>
+        Open source developer at Mapbox. Brasilialainen. Trance addicted.
+    </p>
+</div>
+<section class="well well-sm">
+    <ul class="list-group list-group-flush">
+            <li class="list-group-item"><h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+              <ul class="list-group" id="social">
+                <li class="list-group-item"><a href="https://twitter.com/brunoabinader"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+                <li class="list-group-item"><a href="https://www.linkedin.com/in/brunoabinader"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+                <li class="list-group-item"><a href="https://github.com/brunoabinader"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+              </ul>
+            </li>
+
+
+
+            <li class="list-group-item"><a href="https://brunoabinader.com/"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+                <ul class="list-group list-inline tagcloud" id="tags">
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/basyskom.html">
+                            basyskom
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/blink.html">
+                            blink
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/cmake.html">
+                            cmake
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/css.html">
+                            css
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/ctags.html">
+                            ctags
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/ide.html">
+                            ide
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/off-topic.html">
+                            off-topic
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/qt.html">
+                            qt
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/rust.html">
+                            rust
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/samsung.html">
+                            samsung
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/vim.html">
+                            vim
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/webkit.html">
+                            webkit
+                        </a>
+                    </li>
+                </ul>
+            </li>
+    <li class="list-group-item"><h4><i class="fa fa-external-link-square fa-lg"></i><span class="icon-label">Links</span></h4>
+      <ul class="list-group" id="links">
+        <li class="list-group-item">
+            <a href="https://www.mapbox.com" target="_blank">
+                Mapbox
+            </a>
+        </li>
+      </ul>
+    </li>
+    </ul>
+</section>
+            </aside>
+        </div>
+    </div>
+</div>
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2014 Bruno de Oliveira Abinader
+            &middot; Powered by <a href="https://github.com/DandyDev/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="https://brunoabinader.com/theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="https://brunoabinader.com/theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="https://brunoabinader.com/theme/js/respond.min.js"></script>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-72145420-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+
+</body>
+</html>

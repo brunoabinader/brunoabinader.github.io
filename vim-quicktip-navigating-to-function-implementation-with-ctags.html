@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en"
+>
+<head>
+    <title>Vim Quicktip: Navigating to function implementation with ctags - Bruno Abinader</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="https://brunoabinader.com/vim-quicktip-navigating-to-function-implementation-with-ctags.html">
+
+        <meta name="author" content="Bruno de Oliveira Abinader" />
+        <meta name="keywords" content="ctags,ide,vim" />
+        <meta name="description" content="I am a regular Vim user, but I&#39;ve also played around with full blown IDEs like Qt Creator and MS Visual Studio. One interesting aspect about IDEs is the ability to easily navigate through a function implementation based on its usage on a piece of code. Taking the example from …" />
+
+        <meta property="og:site_name" content="Bruno Abinader" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Vim Quicktip: Navigating to function implementation with ctags"/>
+        <meta property="og:url" content="https://brunoabinader.com/vim-quicktip-navigating-to-function-implementation-with-ctags.html"/>
+        <meta property="og:description" content="I am a regular Vim user, but I&#39;ve also played around with full blown IDEs like Qt Creator and MS Visual Studio. One interesting aspect about IDEs is the ability to easily navigate through a function implementation based on its usage on a piece of code. Taking the example from …"/>
+        <meta property="article:published_time" content="2012-04-12" />
+            <meta property="article:section" content="Quick tips" />
+            <meta property="article:tag" content="ctags" />
+            <meta property="article:tag" content="ide" />
+            <meta property="article:tag" content="vim" />
+            <meta property="article:author" content="Bruno de Oliveira Abinader" />
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="https://brunoabinader.com/theme/css/bootstrap.min.css" type="text/css"/>
+    <link href="https://brunoabinader.com/theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="https://brunoabinader.com/theme/css/pygments/native.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://brunoabinader.com/theme/css/style.css" type="text/css"/>
+
+        <link href="https://brunoabinader.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Bruno Abinader ATOM Feed"/>
+        <link href="https://brunoabinader.com/feeds/all.rss.xml" type="application/rss+xml" rel="alternate"
+              title="Bruno Abinader RSS Feed"/>
+
+</head>
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+	<div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="https://brunoabinader.com/" class="navbar-brand">
+Bruno Abinader            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="https://brunoabinader.com/category/development.html">Development</a>
+                        </li>
+                        <li >
+                            <a href="https://brunoabinader.com/category/guides.html">Guides</a>
+                        </li>
+                        <li >
+                            <a href="https://brunoabinader.com/category/personal.html">Personal</a>
+                        </li>
+                        <li class="active">
+                            <a href="https://brunoabinader.com/category/quick-tips.html">Quick tips</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="https://brunoabinader.com/archives.html"><i class="fa fa-th-list"></i><span class="icon-label">Archives</span></a></li>
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+<!-- Banner -->
+<!-- End Banner -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+            <ol class="breadcrumb">
+                <li><a href="https://brunoabinader.com" title="Bruno Abinader"><i class="fa fa-home fa-lg"></i></a></li>
+                <li><a href="https://brunoabinader.com/category/quick-tips.html" title="Quick tips">Quick tips</a></li>
+                <li class="active">Vim Quicktip: Navigating to function implementation with ctags</li>
+            </ol>
+
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="https://brunoabinader.com/vim-quicktip-navigating-to-function-implementation-with-ctags.html"
+                       rel="bookmark"
+                       title="Permalink to Vim Quicktip: Navigating to function implementation with ctags">
+                        Vim Quicktip: Navigating to function implementation with ctags
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2012-04-12T23:55:00+03:00"> Thu 12 April 2012</time>
+    </span>
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="https://brunoabinader.com/tag/ctags.html">ctags</a>
+        /
+	<a href="https://brunoabinader.com/tag/ide.html">ide</a>
+        /
+	<a href="https://brunoabinader.com/tag/vim.html">vim</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>I am a regular <em>Vim</em> user, but I've also played around with full blown
+IDEs like <em>Qt Creator</em> and <em>MS Visual Studio</em>. One interesting aspect
+about IDEs is the ability to easily navigate through a function
+implementation based on its usage on a piece of code. Taking the example
+from my <a class="reference external" href="http://192.241.254.193/backup/how-cmake-simplifies-the-build-process-part-1-basic-build-system/">CMake post</a>, suppose you use the function <em>sayHello()</em> defined
+in a included header of your current source file and its implementation
+resides in another file as well. You may want to check out its
+implementation, but you doesn't actually require to open a new view or
+loading it on the current view without an easy way to get back to the
+previous code. For this, Vim works very well with ctags. Let us check
+out how to generate ctags for your code and use it to let Vim know where
+to look up for your code.</p>
+<p>First of all, we are assuming you already have Vim installed on your
+system, so now we must also have the <em>exuberant-tags</em> package as well:</p>
+<pre class="literal-block">
+$ sudo apt-get install exuberant-ctags
+</pre>
+<p>Now that you have ctags package installed, you can start generating
+ctags among your commonly used source code projects. You can generate a
+<em>ctags</em> file manually by issuing the following command (preferably
+inside your project's base directory):</p>
+<pre class="literal-block">
+$ ctags -R --sort=yes .
+</pre>
+<p>It is wise to keep an up-to-date <em>ctags</em> file for your most used source
+code projects, and then tell Vim to load them everytime you open a file.
+For this, you can add the following line to your <em>~/.vimrc</em> file:</p>
+<pre class="literal-block">
+set tags += ~/.vim/tags/cpp &quot; (standard C++ library)
+</pre>
+<p><strong>NOTE:</strong> You can also create a macro that automagically creates a
+ctags file on the directory where your currently open file on Vim is
+located. For this, you can also add this line of code inside
+<em>~/.vimrc</em>:</p>
+<pre class="literal-block">
+map &lt;C-F12&gt; :!ctags -R --sort=yes .&lt;CR&gt;
+</pre>
+<p>Now every time you press <em>Ctrl+F12</em> inside Vim, the <em>ctags</em> file is
+either created or updated if already exists.</p>
+<p>Now you are able to navigate through your code implementation. Try
+putting your cursor on a given function call, then press <em>Ctrl+]</em> to go
+to its implementation, and <em>Ctrl+t</em> to get back to where it has been
+called. You can also manually navigate to a function implementation by
+requesting from Vim:</p>
+<pre class="literal-block">
+:ta &lt;function_name&gt;
+</pre>
+<p>Next topic on this subject will be about using a Vim plugin called
+<a class="reference external" href="http://www.vim.org/scripts/script.php?script_id=1520">OmniCppComplete</a> to enable auto complete feature for your code. Thanks
+for reading!</p>
+
+            </div>
+            <!-- /.entry-content -->
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<div id="aboutme">
+        <p>
+            <img width="100%" class="img-thumbnail" src="https://avatars1.githubusercontent.com/u/76133?v=3&s=400"/>
+        </p>
+    <p>
+        <strong>About Bruno de Oliveira Abinader</strong><br/>
+        Open source developer at Mapbox. Brasilialainen. Trance addicted.
+    </p>
+</div>
+<section class="well well-sm">
+    <ul class="list-group list-group-flush">
+            <li class="list-group-item"><h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+              <ul class="list-group" id="social">
+                <li class="list-group-item"><a href="https://twitter.com/brunoabinader"><i class="fa fa-twitter-square fa-lg"></i> twitter</a></li>
+                <li class="list-group-item"><a href="https://www.linkedin.com/in/brunoabinader"><i class="fa fa-linkedin-square fa-lg"></i> linkedin</a></li>
+                <li class="list-group-item"><a href="https://github.com/brunoabinader"><i class="fa fa-github-square fa-lg"></i> github</a></li>
+              </ul>
+            </li>
+
+
+
+            <li class="list-group-item"><a href="https://brunoabinader.com/"><h4><i class="fa fa-tags fa-lg"></i><span class="icon-label">Tags</span></h4></a>
+                <ul class="list-group list-inline tagcloud" id="tags">
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/basyskom.html">
+                            basyskom
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/blink.html">
+                            blink
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/cmake.html">
+                            cmake
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/css.html">
+                            css
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/ctags.html">
+                            ctags
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/ide.html">
+                            ide
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/off-topic.html">
+                            off-topic
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/qt.html">
+                            qt
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/rust.html">
+                            rust
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/samsung.html">
+                            samsung
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/vim.html">
+                            vim
+                        </a>
+                    </li>
+                    <li class="list-group-item tag-1">
+                        <a href="https://brunoabinader.com/tag/webkit.html">
+                            webkit
+                        </a>
+                    </li>
+                </ul>
+            </li>
+    <li class="list-group-item"><h4><i class="fa fa-external-link-square fa-lg"></i><span class="icon-label">Links</span></h4>
+      <ul class="list-group" id="links">
+        <li class="list-group-item">
+            <a href="https://www.mapbox.com" target="_blank">
+                Mapbox
+            </a>
+        </li>
+      </ul>
+    </li>
+    </ul>
+</section>
+            </aside>
+        </div>
+    </div>
+</div>
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2014 Bruno de Oliveira Abinader
+            &middot; Powered by <a href="https://github.com/DandyDev/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="https://brunoabinader.com/theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="https://brunoabinader.com/theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="https://brunoabinader.com/theme/js/respond.min.js"></script>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-72145420-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+
+</body>
+</html>

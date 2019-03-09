@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>Bruno Abinader - Quick tips</title><link>https://brunoabinader.com/</link><description></description><lastBuildDate>Tue, 28 Jan 2014 16:22:00 +0200</lastBuildDate><item><title>Converting C-Like Enums to String values in Rust</title><link>https://brunoabinader.com/converting-c-like-enums-to-string-values-in-rust.html</link><description>&lt;p&gt;Suppose you have a C-Like Enum in Rust like the one below:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;enum&lt;/span&gt; &lt;span class="nc"&gt;Foo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;SomeValue&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;OtherValue&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: C-Like enumerations in Rust have no parameters (i.e.
+&lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;SomeValue(~str)&lt;/span&gt;&lt;/tt&gt;), and can have their discriminator values
+explicitly set to a constant value (i.e. &lt;tt class="docutils literal"&gt;SomeValue = 0&lt;/tt&gt;).
+See&amp;nbsp;&lt;a class="reference external" href="http://static.rust-lang.org/doc/master/tutorial.html#enums"&gt;http://static.rust-lang.org/doc …&lt;/a&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Bruno de Oliveira Abinader</dc:creator><pubDate>Tue, 28 Jan 2014 16:22:00 +0200</pubDate><guid isPermaLink="false">tag:brunoabinader.com,2014-01-28:/converting-c-like-enums-to-string-values-in-rust.html</guid><category>rust</category></item><item><title>Vim Quicktip: Navigating to function implementation with ctags</title><link>https://brunoabinader.com/vim-quicktip-navigating-to-function-implementation-with-ctags.html</link><description>&lt;p&gt;I am a regular &lt;em&gt;Vim&lt;/em&gt; user, but I've also played around with full blown
+IDEs like &lt;em&gt;Qt Creator&lt;/em&gt; and &lt;em&gt;MS Visual Studio&lt;/em&gt;. One interesting aspect
+about IDEs is the ability to easily navigate through a function
+implementation based on its usage on a piece of code. Taking the example
+from …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Bruno de Oliveira Abinader</dc:creator><pubDate>Thu, 12 Apr 2012 23:55:00 +0300</pubDate><guid isPermaLink="false">tag:brunoabinader.com,2012-04-12:/vim-quicktip-navigating-to-function-implementation-with-ctags.html</guid><category>ctags</category><category>ide</category><category>vim</category></item></channel></rss>
