@@ -1,0 +1,15 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+.center {
+    display:block;
+    margin-left:auto;
+    margin-right:auto;
+};
+
+.round {
+    object-fit:cover;
+    border-radius:50%;
+};
